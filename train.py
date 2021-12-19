@@ -15,7 +15,7 @@ from tqdm import tqdm
 import pytorch_ssim
 from data_utils import CustomDatasetTrain, CustomDatasetTest, display_transform
 from loss import GeneratorLoss
-from model import Generator, Discriminator
+from model import Generator, Discriminator, BasicBlock
 
 parser = argparse.ArgumentParser(description='Train Super Resolution Models')
 parser.add_argument('--crop_size', default=88, type=int, help='training images crop size')
@@ -43,19 +43,21 @@ if __name__ == '__main__':
     train_set = CustomDatasetTrain(transform=sm_tf)
 
     valid_set = CustomDatasetTest(transform=sm_tf)
-    print(len(train_set))
-    print(len(valid_set))
-
+    
     #train_set = TrainDatasetFromFolder('data/DIV2K_train_HR', crop_size=CROP_SIZE, upscale_factor=UPSCALE_FACTOR)
     #val_set = ValDatasetFromFolder('data/DIV2K_valid_HR', upscale_factor=UPSCALE_FACTOR)
     train_loader = DataLoader(dataset=train_set, num_workers=4, batch_size=64, shuffle=True)
     val_loader = DataLoader(dataset=valid_set, num_workers=4, batch_size=1, shuffle=False)
 
-
     
     netG = Generator()
     print('# generator parameters:', sum(param.numel() for param in netG.parameters()))
-    netD = Discriminator()
+
+    block = BasicBlock(64,128)
+    layers = [1,1,1,0]
+    netD = Discriminator(BasicBlock,layers)
+
+    #netD = Discriminator()
     print('# discriminator parameters:', sum(param.numel() for param in netD.parameters()))
     
     generator_criterion = GeneratorLoss()
